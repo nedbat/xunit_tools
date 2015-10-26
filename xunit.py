@@ -1,5 +1,7 @@
 """Python classes to help with xunit.xml structure."""
 
+from lxml import etree
+
 
 class Summable(object):
     """An object whose attributes can be added together easily.
@@ -16,7 +18,10 @@ class Summable(object):
         """Construct a Summable from an xml element with the same attributes."""
         self = cls()
         for name in self.fields:
-            setattr(self, name, int(element.get(name)))
+            try:
+                setattr(self, name, int(element.get(name, "0")))
+            except Exception as ex:
+                raise ValueError("Couldn't read attribute %r from %.300s: %s" % (name, etree.tostring(element), ex))
         return self
 
     def onto_element(self, element):
