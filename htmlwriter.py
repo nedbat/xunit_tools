@@ -152,7 +152,7 @@ def clipped(text, maxlength=150):
 
 
 def report_file(path, html_writer):
-    """Report on one nosetests.xml file."""
+    """Report on one XML file."""
 
     with open(path) as xml_file:
         tree = etree.parse(xml_file)                # pylint: disable=no-member
@@ -215,21 +215,11 @@ def main(start):
     totals = TestResults()
     html_writer = HtmlOutlineWriter(sys.stdout)
     for dirpath, _, filenames in os.walk(start):
-        if "nosetests.xml" in filenames:
-            results = report_file(os.path.join(dirpath, "nosetests.xml"), html_writer)
-            totals += results
+        for name in ["nosetests.xml", "xunit.xml"]:
+            if name in filenames:
+                results = report_file(os.path.join(dirpath, name), html_writer)
+                totals += results
     html_writer.write(escape(str(totals)))
-
-def tryit():
-    w = HtmlOutlineWriter(sys.stdout)
-    for f in range(3):
-        w.start_section("File foo{}.xml".format(f))
-        w.write("this is about foo")
-        for err in range(5):
-            w.start_section("error {}".format(err))
-            w.write("ugh")
-            w.end_section()
-        w.end_section()
 
 
 if __name__ == "__main__":
