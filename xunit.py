@@ -19,6 +19,11 @@ class Summable(object):
             setattr(self, name, int(element.get(name)))
         return self
 
+    def onto_element(self, element):
+        """Write the fields as attributes onto an xml element."""
+        for name in self.fields:
+            element.set(name, str(getattr(self, name)))
+
     def __add__(self, other):
         result = type(self)()
         for name in self.fields:
@@ -29,7 +34,7 @@ class Summable(object):
 class TestResults(Summable):
     """A test result, makeable from a nosetests.xml <testsuite> element."""
 
-    fields = ["tests", "errors", "failures", "skip"]
+    fields = ["errors", "failures", "skip", "tests"]
 
     def __str__(self):
         msg = "{0.tests:4d} tests, {0.errors} errors, {0.failures} failures, {0.skip} skipped"
