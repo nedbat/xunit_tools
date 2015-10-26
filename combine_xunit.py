@@ -1,5 +1,7 @@
 """Combine a number of xunit.xml files into one."""
 
+import os, os.path
+
 import click
 from lxml import etree
 
@@ -10,6 +12,8 @@ from xunit import TestResults
 @click.argument('input_files', nargs=-1, type=click.Path(exists=True))
 @click.argument('output_file', nargs=1, type=click.Path())
 def main(input_files, output_file):
+    os.makedirs(os.path.dirname(output_file))
+
     out_suite = etree.fromstring("<testsuite></testsuite>")
     tree = etree.ElementTree(out_suite)
 
