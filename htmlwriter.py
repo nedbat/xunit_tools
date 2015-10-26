@@ -126,7 +126,7 @@ def testcase_name(testcase):
 def error_line_from_error_element(element):
     """Given an <error> element, get the important error line from it."""
     line = element.get("type")
-    message_lines = element.get("message").splitlines()
+    message_lines = element.get("message", "").splitlines()
     if message_lines:
         first_line = message_lines[0].strip()
     else:

@@ -46,20 +46,20 @@ class PullRequestSpider(scrapy.Spider):
         ]
 
     def parse(self, response):
-        # Get the build details from GitHub.  They are listed in the HTML three
-        # times, so use a set to get them just once.
-        build_urls = set()
-        build_details = response.xpath('.//a[@class="build-status-details right"]')
+        # Get the build details from GitHub. There are a number of results
+        # listed.  The bunch in the last <td class="commit-meta"> seems to be
+        # the right ones to look at.
+        last_commit_meta = response.xpath('.//td[@class="commit-meta"]')[-1]
+        build_details = last_commit_meta.xpath('.//a[@class="build-status-details right"]')
         for detail in build_details:
             job_url = detail.xpath("@href").extract()[0]
-            build_urls.add(job_url)
-
-        for build_url in build_urls:
-            yield scrapy.Request(build_url, self.find_build_artifacts)
+            yield scrapy.Request(job_url, self.find_build_artifacts)
 
     def find_build_artifacts(self, response):
-        artifacts_link = response.xpath('.//a[text()="Build Artifacts"]/@href')[0]
-        url = response.urljoin(artifacts_link.extract())
+        artifacts_links = response.xpath('.//a[text()="Build Artifacts"]/@href')
+        if not artifacts_links:
+            return
+        url = response.urljoin(artifacts_links[0].extract())
         yield scrapy.Request(url, self.download_build_artifacts)
 
     def download_build_artifacts(self, response):
