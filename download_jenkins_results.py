@@ -1,9 +1,12 @@
-import scrapy
-from scrapy.crawler import CrawlerProcess
+"""Tool to download all the artifacts from all the Jenkins builds on a PR."""
 
 import os, os.path
 import shutil
 import zipfile
+
+import click
+import scrapy
+from scrapy.crawler import CrawlerProcess
 
 FILE_DOWNLOAD_AREA = "downloads"
 
@@ -71,17 +74,24 @@ class PullRequestSpider(scrapy.Spider):
                 results = ResultsZip(file_urls=[link])
                 yield results
 
-process = CrawlerProcess({
-    'FILES_STORE': FILE_DOWNLOAD_AREA,
-    'ITEM_PIPELINES': {
-        'scrapy.pipelines.files.FilesPipeline': 200,
-        '__main__.UnpackZipFile': 300,
-        '__main__.DeleteFile': 400,
-    },
-    'LOG_LEVEL': 'WARNING',
-})
+@click.command()
+@click.option("--debug", is_flag=True)
+@click.argument("pr_number", type=int)
+def main(debug, pr_number):
+    process = CrawlerProcess({
+        'FILES_STORE': FILE_DOWNLOAD_AREA,
+        'ITEM_PIPELINES': {
+            'scrapy.pipelines.files.FilesPipeline': 200,
+            '__main__.UnpackZipFile': 300,
+            '__main__.DeleteFile': 400,
+        },
+        'LOG_LEVEL': 'DEBUG' if debug else 'WARNING',
+    })
 
-process.crawl(PullRequestSpider, pr_num=10323)
-process.start()
+    process.crawl(PullRequestSpider, pr_num=pr_number)
+    process.start()
 
-shutil.rmtree(FILE_DOWNLOAD_AREA)
+    shutil.rmtree(FILE_DOWNLOAD_AREA)
+
+if __name__ == "__main__":
+    main()
